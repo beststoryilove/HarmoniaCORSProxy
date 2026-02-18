@@ -1,8 +1,10 @@
 // api/proxy.js
-export const config = { runtime: 'edge' };
+export const config = {
+  runtime: 'edge', // 使用 Edge Runtime，更快更省资源
+};
 
 export default async function handler(request) {
-  // CORS 预检处理
+  // 处理预检请求（CORS）
   if (request.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
@@ -15,6 +17,7 @@ export default async function handler(request) {
     });
   }
 
+  // 只允许 GET 请求
   if (request.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
       status: 405,
@@ -53,16 +56,20 @@ export default async function handler(request) {
       targetUrl = apiUrl.toString();
     }
 
-    // 发起请求
+    // 向目标 API 发起请求（使用浏览器标识，以通过网易云等接口的校验）
     const apiResponse = await fetch(targetUrl, {
-      headers: { 'User-Agent': 'Harmonia-Music-Player/1.0' },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://music.163.com/',
+        'Origin': 'https://music.163.com',
+      },
     });
 
     if (!apiResponse.ok) {
       throw new Error(`API responded with status: ${apiResponse.status}`);
     }
 
-    // 返回响应（保持原有CORS头）
+    // 判断响应类型，原样返回（同时添加 CORS 头）
     const contentType = apiResponse.headers.get('content-type') || '';
     let responseBody;
     let responseHeaders = {
