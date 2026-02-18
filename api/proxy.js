@@ -1,10 +1,8 @@
 // api/proxy.js
-export const config = {
-  runtime: 'edge', // 使用 Edge Runtime，更快更省资源
-};
+export const config = { runtime: 'edge' };
 
 export default async function handler(request) {
-  // 处理预检请求（CORS）
+  // CORS 预检处理
   if (request.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
@@ -17,7 +15,6 @@ export default async function handler(request) {
     });
   }
 
-  // 只允许 GET 请求
   if (request.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
       status: 405,
@@ -26,30 +23,38 @@ export default async function handler(request) {
   }
 
   try {
-    // 解析请求参数
     const { searchParams } = new URL(request.url);
-    const types = searchParams.get('types');
-    const source = searchParams.get('source');
-    const id = searchParams.get('id');
-    const name = searchParams.get('name');
-    const page = searchParams.get('pages');
-    const count = searchParams.get('count');
-    const br = searchParams.get('br');
-    const size = searchParams.get('size');
+    let targetUrl;
 
-    // 构建目标 API 地址（固定为你的音乐数据源）
-    const targetUrl = new URL('https://music-api.gdstudio.xyz/api.php');
-    if (types) targetUrl.searchParams.set('types', types);
-    if (source) targetUrl.searchParams.set('source', source);
-    if (id) targetUrl.searchParams.set('id', id);
-    if (name) targetUrl.searchParams.set('name', name);
-    if (page) targetUrl.searchParams.set('pages', page);
-    if (count) targetUrl.searchParams.set('count', count);
-    if (br) targetUrl.searchParams.set('br', br);
-    if (size) targetUrl.searchParams.set('size', size);
+    // 1. 优先检查是否有 url 参数（通用代理模式）
+    const urlParam = searchParams.get('url');
+    if (urlParam) {
+      targetUrl = urlParam;
+    } else {
+      // 2. 否则按原有参数映射方式构建（针对 music-api.gdstudio.xyz）
+      const types = searchParams.get('types');
+      const source = searchParams.get('source');
+      const id = searchParams.get('id');
+      const name = searchParams.get('name');
+      const page = searchParams.get('pages');
+      const count = searchParams.get('count');
+      const br = searchParams.get('br');
+      const size = searchParams.get('size');
 
-    // 向真实 API 发起请求
-    const apiResponse = await fetch(targetUrl.toString(), {
+      const apiUrl = new URL('https://music-api.gdstudio.xyz/api.php');
+      if (types) apiUrl.searchParams.set('types', types);
+      if (source) apiUrl.searchParams.set('source', source);
+      if (id) apiUrl.searchParams.set('id', id);
+      if (name) apiUrl.searchParams.set('name', name);
+      if (page) apiUrl.searchParams.set('pages', page);
+      if (count) apiUrl.searchParams.set('count', count);
+      if (br) apiUrl.searchParams.set('br', br);
+      if (size) apiUrl.searchParams.set('size', size);
+      targetUrl = apiUrl.toString();
+    }
+
+    // 发起请求
+    const apiResponse = await fetch(targetUrl, {
       headers: { 'User-Agent': 'Harmonia-Music-Player/1.0' },
     });
 
@@ -57,7 +62,7 @@ export default async function handler(request) {
       throw new Error(`API responded with status: ${apiResponse.status}`);
     }
 
-    // 判断响应类型，原样返回
+    // 返回响应（保持原有CORS头）
     const contentType = apiResponse.headers.get('content-type') || '';
     let responseBody;
     let responseHeaders = {
