@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonia CORS 代理 · 使用指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(145deg, #0b0e14 0%, #1a1f2b 100%);
+            color: #eef2f8;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+        }
+        header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a7c0ff, #6c8cff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+        .subhead {
+            font-size: 1.2rem;
+            color: #9aa8c7;
+            border-bottom: 1px solid #2a3245;
+            padding-bottom: 1.5rem;
+        }
+        .card {
+            background: rgba(20, 27, 40, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid #313d5a;
+            border-radius: 32px;
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 20px 35px -8px rgba(0,0,0,0.7);
+        }
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #b7cdff;
+        }
+        h2 i {
+            font-size: 2rem;
+            color: #5f7cff;
+        }
+        h3 {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin: 1.8rem 0 1rem 0;
+            color: #d0deff;
+        }
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.2rem 0;
+            font-size: 0.95rem;
+        }
+        .param-table th {
+            text-align: left;
+            background: #252f44;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: #bdd0ff;
+            border-radius: 16px 16px 0 0;
+        }
+        .param-table td {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid #2c3750;
+        }
+        .param-table tr:last-child td {
+            border-bottom: none;
+        }
+        .param-name {
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            color: #ffb774;
+            white-space: nowrap;
+        }
+        .param-type {
+            color: #9fbbff;
+            font-size: 0.85rem;
+            background: #1f2940;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        .param-desc {
+            color: #cdd9ff;
+        }
+        .example {
+            background: #0f1624;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin: 1.8rem 0;
+            border: 1px solid #384566;
+            overflow-x: auto;
+        }
+        .example pre {
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            color: #cbd5ff;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .badge {
+            display: inline-block;
+            background: #32405e;
+            padding: 0.25rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 0.8rem;
+            vertical-align: middle;
+            color: #aec3ff;
+        }
+        .note {
+            background: #1e2841;
+            border-left: 5px solid #6c8cff;
+            padding: 1.2rem 1.8rem;
+            border-radius: 20px;
+            margin-top: 2rem;
+            font-size: 0.95rem;
+            color: #ccd9ff;
+        }
+        .note strong {
+            color: white;
+        }
+        a {
+            color: #8aadff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #5f6f91;
+            font-size: 0.9rem;
+        }
+        .endpoint {
+            background: #1b2337;
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            font-family: monospace;
+            border: 1px solid #3b4a70;
+            margin: 0.5rem 0 1.5rem 0;
+            color: #bfd0ff;
+        }
+        .mode-switch {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .mode-tag {
+            background: #2a344a;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            border: 1px solid #4c5a7c;
+        }
+        .code-inline {
+            font-family: monospace;
+            background: #1f2840;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            color: #faca7e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Harmonia CORS 代理</h1>
+            <div class="subhead">
+                专为音乐播放器设计的轻量级跨域代理 · 基于 Vercel Edge Runtime<br>
+                稳定 · 私密 · 支持网易云 / 通用 API
+            </div>
+        </header>
+
+        <!-- 基础信息 -->
+        <div class="card">
+            <h2>🌐 代理地址</h2>
+            <div class="endpoint">https://cors.harmoniamusicplayer.dpdns.org/api/proxy</div>
+            <p>支持 <strong>两种调用模式</strong>：通用代理（任何URL） 和 特定音乐API模式（参数映射）。</p>
+            <div class="mode-switch">
+                <span class="mode-tag">🔀 通用模式 · 使用 <code class="code-inline">?url=</code></span>
+                <span class="mode-tag">🎯 音乐模式 · 使用 <code class="code-inline">types source id</code> 等</span>
+            </div>
+        </div>
+
+        <!-- 模式1：通用代理 -->
+        <div class="card">
+            <h2>🔗 模式一 · 通用 CORS 代理</h2>
+            <p>通过 <code class="code-inline">url</code> 参数传递任意目标地址，代理将直接转发（保留响应类型）。<br>
+            适合请求网易云歌词、图片或其他任意 API。</p>
+
+            <h3>参数说明</h3>
+            <table class="param-table">
+                <tr><th>参数</th><th>类型</th><th>描述</th></tr>
+                <tr>
+                    <td class="param-name">url</td>
+                    <td><span class="param-type">string (必填)</span></td>
+                    <td class="param-desc">要代理的完整 URL，<strong>必须经过 <code>encodeURIComponent</code> 编码</strong>。</td>
+                </tr>
+            </table>
+
+            <h3>示例</h3>
+            <div class="example">
+                <pre>// 获取网易云歌词 (ID: 3325884349)
+const target = 'https://music.163.com/api/song/lyric?id=3325884349&lv=1';
+const proxyUrl = `https://cors.harmoniamusicplayer.dpdns.org/api/proxy?url=${encodeURIComponent(target)}`;
+
+fetch(proxyUrl)
+  .then(res => res.json())
+  .then(lyric => console.log(lyric.lrc.lyric));</pre>
+            </div>
+            <div class="example">
+                <pre>// 直接浏览器测试（已编码）
+<a href="https://cors.harmoniamusicplayer.dpdns.org/api/proxy?url=https%3A%2F%2Fmusic.163.com%2Fapi%2Fsong%2Flyric%3Fid%3D3325884349%26lv%3D1" target="_blank">点击测试歌词代理</a></pre>
+            </div>
+        </div>
+
+        <!-- 模式2：音乐API代理 -->
+        <div class="card">
+            <h2>🎼 模式二 · 音乐数据源代理</h2>
+            <p>固定转发到 <code class="code-inline">https://music-api.gdstudio.xyz/api.php</code>，支持该源的所有参数。<br>
+            适合搜索、获取播放链接、专辑封面等。</p>
+
+            <h3>支持参数</h3>
+            <table class="param-table">
+                <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+                <tr><td class="param-name">types</td><td><span class="param-type">string</span></td><td>请求类型：<code>search</code>, <code>lyric</code>, <code>pic</code>, <code>url</code> 等</td></tr>
+                <tr><td class="param-name">source</td><td><span class="param-type">string</span></td><td>数据源：<code>netease</code>, <code>tencent</code>, <code>xiami</code> 等</td></tr>
+                <tr><td class="param-name">id</td><td><span class="param-type">string</span></td><td>歌曲/歌单 ID（用于 lyric, pic, url）</td></tr>
+                <tr><td class="param-name">name</td><td><span class="param-type">string</span></td><td>搜索关键词（当 types=search 时）</td></tr>
+                <tr><td class="param-name">pages</td><td><span class="param-type">number</span></td><td>页码，默认 1</td></tr>
+                <tr><td class="param-name">count</td><td><span class="param-type">number</span></td><td>每页数量，默认 20</td></tr>
+                <tr><td class="param-name">br</td><td><span class="param-type">number</span></td><td>码率：128, 320, 999（用于 types=url）</td></tr>
+                <tr><td class="param-name">size</td><td><span class="param-type">number</span></td><td>图片尺寸（用于 types=pic）</td></tr>
+            </table>
+
+            <h3>示例</h3>
+            <div class="example">
+                <pre>// 搜索周杰伦 (网易云)
+fetch('https://cors.harmoniamusicplayer.dpdns.org/api/proxy?types=search&source=netease&name=周杰伦&count=5')
+  .then(res => res.json())
+  .then(songs => console.log(songs));</pre>
+            </div>
+            <div class="example">
+                <pre>// 获取歌曲播放地址
+fetch('https://cors.harmoniamusicplayer.dpdns.org/api/proxy?types=url&source=netease&id=3325884349&br=320')
+  .then(res => res.json())
+  .then(data => console.log(data.url));</pre>
+            </div>
+        </div>
+
+        <!-- 重要提示 -->
+        <div class="card">
+            <h2>⚠️ 注意事项</h2>
+            <ul style="margin-left: 1.8rem; color: #cdd9ff;">
+                <li><strong>URL 编码</strong>：使用通用模式时，<code class="code-inline">url</code> 参数必须用 <code class="code-inline">encodeURIComponent()</code> 编码，否则可能解析失败。</li>
+                <li><strong>请求头</strong>：代理已内置浏览器级 <code class="code-inline">User-Agent</code> 及 <code class="code-inline">Referer</code>，可正常通过网易云等接口校验。</li>
+                <li><strong>响应大小</strong>：Edge Function 对响应体有 4MB 限制，适合歌词、封面等，大文件请谨慎。</li>
+                <li><strong>仅支持 GET</strong>：目前仅允许 GET 请求，OPTIONS 用于 CORS 预检。</li>
+                <li><strong>使用限制</strong>：此代理为个人项目优化，请勿用于大规模爬取，合理使用。</li>
+            </ul>
+
+            <div class="note">
+                <strong>📌 关于逐字歌词</strong><br>
+                网易云逐字歌词需添加 <code class="code-inline">&yv=1</code> 参数，例如：<br>
+                <code style="background:#1e2a3a; padding:0.2rem 0.5rem; border-radius:6px;">https://music.163.com/api/song/lyric?id=3325884349&lv=1&yv=1</code><br>
+                通过通用模式传入即可。若返回数据缺少 <code>lrc</code>，通常是 User-Agent 问题（本代理已修复）。
+            </div>
+        </div>
+
+        <!-- 快速测试区 -->
+        <div class="card">
+            <h2>🧪 在线测试</h2>
+            <p>直接在浏览器中尝试以下链接（点击后查看返回的 JSON）：</p>
+            <ul style="margin: 1rem 0 1rem 2rem;">
+                <li><a href="https://cors.harmoniamusicplayer.dpdns.org/api/proxy?types=search&source=netease&name=周杰伦&count=2" target="_blank">搜索“周杰伦” (音乐模式)</a></li>
+                <li><a href="https://cors.harmoniamusicplayer.dpdns.org/api/proxy?url=https%3A%2F%2Fmusic.163.com%2Fapi%2Fsong%2Flyric%3Fid%3D3325884349%26lv%3D1" target="_blank">获取歌词 (通用模式)</a></li>
+                <li><a href="https://cors.harmoniamusicplayer.dpdns.org/api/proxy?url=https%3A%2F%2Fmusic.163.com%2Fapi%2Fsong%2Flyric%3Fid%3D3325884349%26lv%3D1%26yv%3D1" target="_blank">获取逐字歌词 (通用模式)</a></li>
+            </ul>
+        </div>
+
+        <footer>
+            ⚡ 部署于 Vercel Edge · 开源· 定制代理 · 问题反馈请联系开发者
+        </footer>
+    </div>
+</body>
+</html>
